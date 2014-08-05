@@ -9,9 +9,9 @@ public class Game {
 	private static ArrayList<Token> blueTokens =  new ArrayList<Token>();
 	private static ArrayList<Token> yellowTokens =  new ArrayList<Token>();
 	private static ArrayList<Token> greenTokens =  new ArrayList<Token>();
-	
-	
 	private static int numOfPlayers = 0;
+	private static int dieValue = 0;
+	
 	public static int getNumOfPlayers()
 	{
 		System.out.println("Enter the number of players:");
@@ -19,48 +19,115 @@ public class Game {
 		return scanner.nextInt();
 	}
 	
-	
 	public static void main(String [] args)
 	{
 		numOfPlayers = getNumOfPlayers();
 		initializeBoard();
 		char currentTurn = randomizedStart();
 		while(!isGameOver())
-		{
-			
-			int dieValue = rollTheDie();
-			showCurrentStatus();
-			boolean successfulMove=false;
-			while(!successfulMove)
+		{			
+			dieValue = getDieValue();
+			if(dieValue != 0 )
 			{
-				int tokenIndex = askForMove();
-				if(isValidMove(currentTurn,tokenIndex, dieValue))
+				System.out.println("Current Board:");
+				showCurrentStatus();
+				System.out.println(currentTurn + " rolled: " +dieValue);
+				boolean successfulMove=false;
+				if(isMovePossible(dieValue, currentTurn))
 				{
-					MakeMove(currentTurn, tokenIndex, dieValue);
-					successfulMove = true;
-				}				
-			}			
-			currentTurn = getNextTurn(currentTurn);
+					while(!successfulMove)
+					{
+						int tokenIndex = askForMove(currentTurn);
+						tokenIndex -= 1;
+						if(isValidMove(currentTurn,tokenIndex))
+						{
+							if(makeMove(currentTurn, tokenIndex))
+							{
+								successfulMove = true;
+							}
+						}
+						else
+						{
+							System.out.println("Please Enter a valid move.");
+						}
+					}
+				}
+				else
+				{
+					System.out.println("No Move Possible. Turn skipped for " + currentTurn);
+				}
+				currentTurn = getNextTurn(currentTurn);	
+			}
+			else
+			{
+				System.out.println("Turn skipped. Next Turn.");
+				currentTurn = getNextTurn(currentTurn);
+			}
 		}
 	}
 
+	private static boolean isMovePossible(int dieValue, char currentTurn) {
+		
+		ArrayList<Token> tokenList =  getPlayerTokenList(currentTurn);
+		
+		for(Token t: tokenList)
+		{
+			if(t.getPosition() != -1)
+				return true;
+		}		
+		if(dieValue >= 6)
+		{
+			return true;
+		}
+		return false;
+	}
 
-	private static void MakeMove(char currentTurn, int tokenIndex, int dieValue) {
+	private static int getDieValue() {
+		dieValue = rollTheDie();		
+		if (dieValue == 6)
+		{
+			dieValue += rollTheDie();
+			if(dieValue == 12)
+			{
+				dieValue += rollTheDie();
+			}
+		}
+		if (dieValue == 18)
+		{
+			dieValue = 0;
+		}
+		return dieValue;
+	}
+
+	private static boolean makeMove(char currentTurn, int tokenIndex) 
+	{
 		ArrayList<Token> tokenList =  getPlayerTokenList(currentTurn);
 		Token currentToken = tokenList.get(tokenIndex);
-		int newPosition = currentToken.getPosition()+dieValue;
+		int newPosition=0;
+		if(currentToken.getPosition() == -1 && dieValue >= 6)
+		{
+			newPosition = currentToken.startPosition + dieValue - 6;
+		}
+		else if(currentToken.getPosition() == -1 && dieValue != 6)
+		{
+			newPosition = -1;
+			return false;
+		}
+		else
+		{
+			newPosition = currentToken.getPosition() + dieValue;
+		}
 		char occupiedColor=' ';
 		if((occupiedColor = isOccupied(newPosition,currentTurn))!=' ')
 		{
 			removeToken(newPosition,occupiedColor);
 		}
 		currentToken.setPosition(newPosition);
-		
+		return true;		
 	}
 
-
-	private static void removeToken(int newPosition, char occupiedColor) {
-		
+	private static void removeToken(int newPosition, char occupiedColor) 
+	{		
 		ArrayList<Token> appropriateList = getPlayerTokenList(occupiedColor);
 		for(Token r: appropriateList)
 		{
@@ -69,9 +136,8 @@ public class Game {
 		}		
 	}
 
-
-	private static char isOccupied(int newPosition,char currentTurn) {
-		
+	private static char isOccupied(int newPosition,char currentTurn) 
+	{	
 		String order = "rbyg".replace(String.valueOf(currentTurn), "");
 		for(char c:order.toCharArray())
 		{
@@ -85,30 +151,32 @@ public class Game {
 		return ' ';
 	}
 
-
-	private static boolean isValidMove(char currentTurn, int tokenIndex,
-			int dieValue) {
-		
+	private static boolean isValidMove(char currentTurn, int tokenIndex) 
+	{		
 		ArrayList<Token> tokenList =  getPlayerTokenList(currentTurn);
 		Token currentToken = tokenList.get(tokenIndex);
-		int newPosition = currentToken.getPosition()+dieValue;
-		
-		//TODO check whether resulting move is a valid move
-		
+		int newPosition = currentToken.getPosition() + dieValue;
+
+		/*
+		if(currentToken.getPosition() == -1 && dieValue >= 6)
+		{
+			dieValue = dieValue - 6;
+			return true;
+		}
+		*/
 		//same color check
 		for(Token t: tokenList)
 		{
 			if(t.getPosition() == newPosition)
 				return false;
 		}
-		
-		
-		return false;
+		return true;
 	}
 
-
-	private static int askForMove() {
-		System.out.println("Which token number do you want to use:");
+	@SuppressWarnings("resource")
+	private static int askForMove(char currentTurn) 
+	{
+		System.out.println("Player " + currentTurn + " Which token number do you want to use:");
 		Scanner ob = new Scanner(System.in);
 		int token  = ob.nextInt();
 		return token;
@@ -122,49 +190,62 @@ public class Game {
 		}
 	}
 
-	private static void showCurrentStatus() {
+	private static void showCurrentStatus() 
+	{
 		String order = "rbyg";
 		String playerArrangement = order.substring(0,numOfPlayers);
 		for(char c : playerArrangement.toCharArray())
 		{
 			displayPlayerTokens(getPlayerTokenList(c));
-		}
-		
-		
+		}		
 	}
 
-
-	private static int rollTheDie() {
+	private static int rollTheDie() 
+	{
 		Random r = new Random();
-		int maxValue = 6;
+		int maxValue = 7;
 		return r.nextInt(maxValue-1)+1;
 	}
 
-
-	public static char randomizedStart() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	public static char getNextTurn(char currentTurn) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	public static boolean isGameOver() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	
-	
-	
-
-
-	public static void initializeBoard() {
+	public static char randomizedStart() 
+	{
+		Random r = new Random();
+		int maxValue = numOfPlayers;
+		String order = "rbyg";
+		String playerArrangement = order.substring(0,numOfPlayers);
 		
+		return playerArrangement.toCharArray()[r.nextInt(maxValue-1)];
+	}
+
+	public static char getNextTurn(char currentTurn) 
+	{
+		String order = "rbyg";
+		String playerArrangement = order.substring(0,numOfPlayers);		
+		int index = playerArrangement.indexOf(currentTurn);
+		
+		return playerArrangement.charAt((index + 1) % numOfPlayers);
+	}
+
+	public static boolean isGameOver() 
+	{		
+		String order = "rbyg";
+		String playerArrangement = order.substring(0,numOfPlayers);
+		for(char c : playerArrangement.toCharArray())
+		{
+			ArrayList<Token> appropriateList = getPlayerTokenList (c);
+			for(Token t : appropriateList)
+			{
+				if (!t.hasReachedHome())
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public static void initializeBoard() 
+	{		
 		String order = "rbyg";
 		String playerArrangement = order.substring(0,numOfPlayers);
 		for(char c : playerArrangement.toCharArray())
@@ -174,15 +255,12 @@ public class Game {
 				Token t1 = new Token(-1,c,false,false);
 				ArrayList<Token> appropriateList = getPlayerTokenList (c);
 				appropriateList.add(t1);
-			}
-			
-		}
-		
+			}			
+		}		
 	}
 
-
-	private static ArrayList<Token> getPlayerTokenList(char c) {
-		
+	private static ArrayList<Token> getPlayerTokenList(char c) 
+	{		
 		if(c == 'r')
 			return redTokens;
 		else if(c == 'b')
@@ -190,8 +268,6 @@ public class Game {
 		else if(c=='y')
 			return yellowTokens;
 		else
-			return greenTokens;
-		
-	}
-	
+			return greenTokens;	
+	}	
 }

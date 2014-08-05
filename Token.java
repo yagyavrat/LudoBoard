@@ -5,6 +5,8 @@ public class Token {
 	char color;
 	boolean isInHomeTerritory;
 	boolean hasReachedHome;
+	int startPosition;
+	int endPosition;
 	
 	public Token(int p, char c, boolean ht,boolean rh)
 	{
@@ -12,7 +14,34 @@ public class Token {
 		color = c; 
 		isInHomeTerritory = ht;
 		hasReachedHome = rh;
+		assignStartAndEndPositions();
 	}
+	
+	private void assignStartAndEndPositions()
+	{
+		if(color == 'r')
+		{
+			startPosition = 0;
+			endPosition = 50;
+		}
+		else if(color == 'b')
+		{
+			startPosition = 13;
+			endPosition = 11;
+		}
+		else if(color == 'y')
+		{
+			startPosition = 26;
+			endPosition = 24;
+		}
+		else
+		{
+			startPosition = 39;
+			endPosition = 37;
+		}
+	
+	}
+	
 	
 	public char getColor() {
 		return color;
