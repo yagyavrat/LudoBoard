@@ -103,27 +103,42 @@ public class Game {
 	{
 		ArrayList<Token> tokenList =  getPlayerTokenList(currentTurn);
 		Token currentToken = tokenList.get(tokenIndex);
-		int newPosition=0;
-		if(currentToken.getPosition() == -1 && dieValue >= 6)
+		
+		if(currentToken.hasReachedHome() == true)
 		{
-			newPosition = currentToken.startPosition + dieValue - 6;
-		}
-		else if(currentToken.getPosition() == -1 && dieValue != 6)
-		{
-			newPosition = -1;
-			return false;
+			
+			return true;
 		}
 		else
 		{
-			newPosition = currentToken.getPosition() + dieValue;
+			int newPosition=0;
+			if(currentToken.getPosition() == -1 && dieValue >= 6)
+			{
+				newPosition = currentToken.startPosition + dieValue - 6;
+			}
+			else if(currentToken.getPosition() == -1 && dieValue != 6)
+			{
+				newPosition = -1;
+				return false;
+			}
+			else
+			{
+				newPosition = currentToken.getPosition() + dieValue;
+			}
+			char occupiedColor=' ';
+			if((occupiedColor = isOccupied(newPosition,currentTurn))!=' ')
+			{
+				removeToken(newPosition,occupiedColor);
+			}
+			if(newPosition > currentToken.getEndPosition())
+			{
+				currentToken.setHasReachedHome(true);
+				currentToken.setPosition(currentToken.getEndPosition() - newPosition);
+			}
+			else
+				currentToken.setPosition(newPosition);
+			return true;
 		}
-		char occupiedColor=' ';
-		if((occupiedColor = isOccupied(newPosition,currentTurn))!=' ')
-		{
-			removeToken(newPosition,occupiedColor);
-		}
-		currentToken.setPosition(newPosition);
-		return true;		
 	}
 
 	private static void removeToken(int newPosition, char occupiedColor) 
