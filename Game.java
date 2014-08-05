@@ -46,14 +46,62 @@ public class Game {
 
 
 	private static void MakeMove(char currentTurn, int tokenIndex, int dieValue) {
-		// TODO Auto-generated method stub
+		ArrayList<Token> tokenList =  getPlayerTokenList(currentTurn);
+		Token currentToken = tokenList.get(tokenIndex);
+		int newPosition = currentToken.getPosition()+dieValue;
+		char occupiedColor=' ';
+		if((occupiedColor = isOccupied(newPosition,currentTurn))!=' ')
+		{
+			removeToken(newPosition,occupiedColor);
+		}
+		currentToken.setPosition(newPosition);
 		
+	}
+
+
+	private static void removeToken(int newPosition, char occupiedColor) {
+		
+		ArrayList<Token> appropriateList = getPlayerTokenList(occupiedColor);
+		for(Token r: appropriateList)
+		{
+			if(r.getPosition() == newPosition)
+				r.setPosition(-1);	
+		}		
+	}
+
+
+	private static char isOccupied(int newPosition,char currentTurn) {
+		
+		String order = "rbyg".replace(String.valueOf(currentTurn), "");
+		for(char c:order.toCharArray())
+		{
+			ArrayList<Token> appropriateList = getPlayerTokenList(c);
+			for(Token r: appropriateList)
+			{
+				if(r.getPosition() == newPosition)
+					return r.getColor();	
+			}		
+		}
+		return ' ';
 	}
 
 
 	private static boolean isValidMove(char currentTurn, int tokenIndex,
 			int dieValue) {
+		
 		ArrayList<Token> tokenList =  getPlayerTokenList(currentTurn);
+		Token currentToken = tokenList.get(tokenIndex);
+		int newPosition = currentToken.getPosition()+dieValue;
+		
+		//TODO check whether resulting move is a valid move
+		
+		//same color check
+		for(Token t: tokenList)
+		{
+			if(t.getPosition() == newPosition)
+				return false;
+		}
+		
 		
 		return false;
 	}
