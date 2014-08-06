@@ -7,6 +7,7 @@ public class Token {
 	boolean hasReachedHome;
 	int startPosition;
 	int endPosition;
+	
 	int distanceTravelled;
 	
 	

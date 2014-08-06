@@ -36,7 +36,7 @@ public class Game {
 
 	private static char playGame(char currentTurn) {
 		dieValue = getDieValue();
-		if(dieValue != 0 )
+		if(dieValue != 0 ) // triple six foul 
 		{
 			
 			showCurrentStatus();
@@ -137,6 +137,7 @@ public class Game {
 			else
 			{
 				System.out.println("Not a valid move.");
+				return false;
 				// TODO Get further input from user if moves are possible else skip turn
 			}			
 			return true;
@@ -167,7 +168,7 @@ public class Game {
 			if(willExceedGeneralTerritory(currentToken))
 			{
 				currentToken.setIsInHomeTerritory(true);
-				currentToken.setPosition(newPosition - currentToken.getEndPosition());
+				currentToken.setPosition(currentToken.getPosition() + dieValue - currentToken.getEndPosition());
 			}
 			else
 			{
